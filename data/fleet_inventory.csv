@@ -1,0 +1,5 @@
+VIN,Category,Model,BatteryCapacityKwh,CurrentEnergyKwh,OdometerKm,Status
+1V1EVLASTMILE01,Last-Mile Van,Transit-Volt 350,85.00,78.00,0.00,CHARGING
+1V1EVLASTMILE02,Last-Mile Van,Transit-Volt 350,85.00,18.50,0.00,QUEUED_CHARGING
+1H1EVFREIGHT901,Heavy Cargo Semi,VoltHauler Semi,350.00,310.00,0.00,CHARGING
+1P1EVSHUTTLE501,Transit Shuttle,MetroE-Shuttle 20,110.00,95.00,0.00,CHARGING
