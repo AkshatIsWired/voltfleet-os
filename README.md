@@ -51,7 +51,6 @@ VoltFleet OS models and solves each of these constraints in standard Java SE wit
 | **Institution** | Vellore Institute of Technology (VIT), Bhopal University |
 | **Student Author** | Akshat Sharma |
 | **Registration Number** | `24BEC10124` |
-| **Faculty Evaluator** | Dr. Vipin Jain |
 | **Academic Session** | Fall Semester 2026 to 2027 |
 | **Official Repository** | [github.com/AkshatIsWired/voltfleet-os](https://github.com/AkshatIsWired/voltfleet-os) |
 
