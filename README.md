@@ -32,11 +32,11 @@
 
 VoltFleet OS is a standalone Java core engine designed for commercial electric vehicle (EV) fleet dispatching, depot substation load management, and real-time telemetry streaming.
 
-Commercial EV operations face operational challenges that standard combustion fleet managers never encounter:
-1. **Non-Linear Range Depletion:** Vehicle mass, payload weight, regenerative braking efficiency, and auxiliary HVAC climate draws cause dynamic energy consumption that invalidates static distance calculations.
-2. **Depot Substation Overload:** Charging multiple commercial vehicles simultaneously risks exceeding local transformer capacity, risking hardware damage and grid penalties.
-3. **Telemetry Ingestion Concurrency:** Telematics sensors stream high-frequency GPS, thermal, and speed packets that must be logged without blocking dispatcher UI operations.
-4. **Audit and Inventory Persistence:** Regulatory carbon offset credits require verified disk persistence of energy transactions and fleet states.
+Commercial EV fleet operations face four distinct operational constraints:
+- Vehicle energy consumption varies dynamically with cargo payload, regenerative braking recapture, aerodynamic drag, and climate control draw, making static range estimates inaccurate.
+- Charging multiple vehicles concurrently can overload depot substation transformers, requiring active power throttling.
+- High-frequency telematics streams (GPS, temperature, velocity) must be processed asynchronously to keep dispatcher interfaces responsive.
+- Regulatory carbon offset auditing requires verified disk persistence of energy metrics and fleet logs.
 
 VoltFleet OS models and solves each of these constraints in standard Java SE with zero external dependencies.
 
@@ -114,9 +114,7 @@ $$\text{Energy}_{\text{Required}} (\text{kWh}) = \text{Distance} \times [\;\text
 | **Transit Passenger Shuttle** | `PassengerShuttle` | 90.0 kWh | 0.32 kWh/km | `+0.00006 kWh/km/kg` | **1.08x** (Continuous passenger cabin HVAC load) |
 
 ### Safety Interlock Rules
-- **15% Reserve Threshold:** Every vehicle must retain at least 15% of its total battery pack capacity upon route completion.
-- If $\text{Energy}_{\text{Required}} > \text{CurrentEnergy} - (0.15 \times \text{Capacity})$, dispatch is rejected and a `BatteryDepletionException` is thrown.
-- Rejected vehicles are automatically enqueued into a `PriorityQueue<Vehicle>` prioritized by lowest State of Charge (SoC).
+Every vehicle must retain at least 15% of its total battery pack capacity upon route completion. If $\text{Energy}_{\text{Required}} > \text{CurrentEnergy} - (0.15 \times \text{Capacity})$, dispatch is rejected and a `BatteryDepletionException` is thrown. Rejected vehicles are automatically placed into a `PriorityQueue<Vehicle>` ordered by lowest State of Charge (SoC).
 
 ---
 
@@ -155,8 +153,8 @@ VoltFleet OS maps directly to the CSE2006 (Programming in Java) curriculum:
 ## 7. Compilation & Execution
 
 ### Prerequisites
-- **Java Development Kit (JDK):** Version 8 or higher (Tested on OpenJDK 11, 17, 21, and Oracle JDK 21).
-- **Operating System:** Windows, Linux, or macOS.
+- Java Development Kit (JDK) 8 or higher (tested on OpenJDK 11, 17, 21, and Oracle JDK 21).
+- Terminal environment on Windows, Linux, or macOS.
 
 ### Clone the Repository
 ```bash
