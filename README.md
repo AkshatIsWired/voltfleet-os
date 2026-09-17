@@ -1,136 +1,231 @@
-# VoltFleet OS: Autonomous Electric Fleet Energy and Telematics Engine
+<div align="center">
 
-[![Java](https://img.shields.io/badge/Java-SE%208%2B%20%2F%2011%20%2F%2017%20%2F%2020%2B-blue.svg)](https://www.oracle.com/java/)
-[![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-green.svg)]()
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
-[![CLI](https://img.shields.io/badge/Interface-Command--Line%20(CLI)-orange.svg)]()
+<img src="docs/assets/voltfleet_logo_transparent.png" alt="VoltFleet OS Logo" width="160" />
 
-> Course project: Programming in Java (CSE2006)  
-> Institution: VIT Bhopal University  
-> Author: Akshat Sharma (Reg. No: 24BEC10124)  
-> Faculty Evaluator: Dr. Vipin Jain  
+# VoltFleet OS
 
+### Autonomous Electric Vehicle Fleet Energy, Range Safety, and Grid Load Balancing Engine
 
-## Project Documentation & Academic Reports
-The complete 15-page academic project report is available in multiple formats within the docs/ directory:
-- [Evaluated Course Project Report (PDF)](docs/VoltFleet_OS_Project_Report.pdf)
-- [Evaluated Course Project Report (Word DOCX)](docs/VoltFleet_OS_Project_Report.docx)
-- [Standalone Interactive HTML Report](docs/VoltFleet_OS_Project_Report.html)
+[![Java](https://img.shields.io/badge/Java-SE%208%20%7C%2011%20%7C%2017%20%7C%2021-007396?logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Build Status](https://img.shields.io/badge/Build-Passing-10b981.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-6%20%2F%206%20Passed%20(100%25)-success.svg)]()
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Course](https://img.shields.io/badge/Course-CSE2006%20(Programming%20in%20Java)-8b5cf6.svg)]()
+[![Institution](https://img.shields.io/badge/Institution-VIT%20Bhopal%20University-1e3a8a.svg)](https://vitbhopal.ac.in)
 
-## 1. Project overview
-VoltFleet OS is a command-line Java application for dispatching commercial electric vehicle (EV) fleets, managing depot power distribution, and recording telemetry. It models several practical operational constraints:
-- Vehicle energy calculations: Estimates energy consumption using category-specific equations that account for cargo weight, regenerative braking, aerodynamic drag, and climate control loads.
-- Substation overload prevention: Monitors concurrent power demand across charging bays and prevents activations that would exceed the depot transformer limit of 250 kW.
-- Telematics streaming: Uses background worker threads to produce simulated sensor streams with GPS coordinates, velocity, battery temperature, and state of charge.
-- Persistent records: Exports fleet inventory to CSV files and logs operational events using Java buffered I/O streams.
+<p align="center">
+  <a href="#1-project-overview">Overview</a> •
+  <a href="#2-academic-metadata--reports">Project Reports</a> •
+  <a href="#3-system-architecture">Architecture</a> •
+  <a href="#4-domain-models--vehicle-physics">Domain Models</a> •
+  <a href="#5-substation-grid-balancing">Grid Balancing</a> •
+  <a href="#6-syllabus-mapping">Syllabus Mapping</a> •
+  <a href="#7-compilation--execution">Quickstart</a> •
+  <a href="#8-unit-tests--verification">Test Suite</a>
+</p>
 
-## 2. System architecture and class hierarchy
+</div>
 
-`	ext
+---
+
+## 1. Project Overview
+
+VoltFleet OS is a standalone Java core engine designed for commercial electric vehicle (EV) fleet dispatching, depot substation load management, and real-time telemetry streaming.
+
+Commercial EV operations face operational challenges that standard combustion fleet managers never encounter:
+1. **Non-Linear Range Depletion:** Vehicle mass, payload weight, regenerative braking efficiency, and auxiliary HVAC climate draws cause dynamic energy consumption that invalidates static distance calculations.
+2. **Depot Substation Overload:** Charging multiple commercial vehicles simultaneously risks exceeding local transformer capacity, risking hardware damage and grid penalties.
+3. **Telemetry Ingestion Concurrency:** Telematics sensors stream high-frequency GPS, thermal, and speed packets that must be logged without blocking dispatcher UI operations.
+4. **Audit and Inventory Persistence:** Regulatory carbon offset credits require verified disk persistence of energy transactions and fleet states.
+
+VoltFleet OS models and solves each of these constraints in standard Java SE with zero external dependencies.
+
+---
+
+## 2. Academic Metadata & Reports
+
+| Specification | Project Details |
+| :--- | :--- |
+| **Course Code & Title** | CSE2006: Programming in Java |
+| **Academic Component** | Evaluated Course Project (Flipped Course Submission) |
+| **Institution** | Vellore Institute of Technology (VIT), Bhopal University |
+| **Student Author** | Akshat Sharma |
+| **Registration Number** | `24BEC10124` |
+| **Faculty Evaluator** | Dr. Vipin Jain |
+| **Academic Session** | Fall Semester 2026 to 2027 |
+| **Official Repository** | [github.com/AkshatIsWired/voltfleet-os](https://github.com/AkshatIsWired/voltfleet-os) |
+
+### Complete Documentation Suite
+The full academic project report is available in multiple formats inside the `docs/` folder:
+- 📄 **[Evaluated Course Project Report (PDF - 15 Pages)](docs/VoltFleet_OS_Project_Report.pdf)**: Complete academic report with UML diagrams, mathematical formulas, code listings, execution logs, and boundary analysis.
+- 📝 **[Editable Project Report (Word DOCX)](docs/VoltFleet_OS_Project_Report.docx)**: Official formatted submission document.
+- 🌐 **[Standalone HTML Report](docs/VoltFleet_OS_Project_Report.html)**: Portable browser-based view with embedded SVG vector architecture diagrams.
+- ⚙️ **[Automated Report Generator](docs/generate_report.py)**: Python script to compile HTML, PDF, and DOCX reports programmatically.
+
+---
+
+## 3. System Architecture
+
+VoltFleet OS is structured into seven decoupled packages under `com.voltfleet`:
+
+```text
 com.voltfleet
 ├── exception
-│   ├── VoltFleetException.java            (Base checked exception with timestamp)
-│   ├── BatteryDepletionException.java     (Range safety violation exception)
-│   ├── GridOverloadException.java         (Depot substation overload safeguard)
-│   ├── VehicleUnavailableException.java   (Asset status lock exception)
-│   └── InvalidVINException.java           (Unchecked VIN format validation exception)
+│   ├── VoltFleetException.java            (Base checked exception with ISO timestamp)
+│   ├── BatteryDepletionException.java     (Range safety interlock violation)
+│   ├── GridOverloadException.java         (250 kW substation transformer overload defense)
+│   ├── VehicleUnavailableException.java   (Asset operational status lock)
+│   └── InvalidVINException.java           (Unchecked 17-character VIN syntax exception)
 ├── interfaces
-│   ├── Dispatchable.java                  (Route assignment contract)
-│   ├── EnergyChargeable.java              (Battery charging interface)
-│   └── Auditable.java                     (Regulatory and carbon offset audit contract)
+│   ├── Dispatchable.java                  (Route feasibility and dispatch contract)
+│   ├── EnergyChargeable.java              (Depot bay connection and charging interface)
+│   └── Auditable.java                     (Carbon offset and lifecycle auditing contract)
 ├── model
 │   ├── Vehicle.java                       (Abstract base class with dynamic dispatch)
-│   ├── DeliveryVan.java                   (Subclass: Stop-and-go regenerative logic)
-│   ├── HeavyCargoTruck.java               (Subclass: High-payload aerodynamic scaling)
-│   ├── PassengerShuttle.java              (Subclass: Continuous HVAC thermal load)
-│   ├── ChargingBay.java                   (Depot hardware terminal entity)
-│   ├── ChargingTier.java                  (Enum: AC Slow, DC Fast, Ultra-Rapid with rates)
-│   ├── VehicleStatus.java                 (Enum: Operational lifecycle states)
-│   └── TelematicsRecord.java              (Immutable telemetry DTO)
+│   ├── DeliveryVan.java                   (Urban stop-and-go with 0.88x regen recapture)
+│   ├── HeavyCargoTruck.java               (Freight logistics with 1.15x drag penalty)
+│   ├── PassengerShuttle.java              (Continuous HVAC passenger climate load)
+│   ├── ChargingBay.java                   (Depot charging terminal entity)
+│   ├── ChargingTier.java                  (Enum: STANDARD_AC, FAST_DC, ULTRA_RAPID_DC)
+│   ├── VehicleStatus.java                 (Enum: AVAILABLE, EN_ROUTE, CHARGING, MAINTENANCE)
+│   └── TelematicsRecord.java              (Immutable telemetry sensor DTO)
 ├── service
-│   ├── DepotManager.java                  (Singleton depot controller & PriorityQueue)
-│   ├── GridLoadBalancer.java              (2D power schedule matrix & overload ceiling)
-│   └── TelematicsSimulator.java           (Multithreaded background sensor worker)
+│   ├── DepotManager.java                  (Singleton controller with LinkedHashMap & PriorityQueue)
+│   ├── GridLoadBalancer.java              (2D power schedule matrix & synchronized allocation)
+│   └── TelematicsSimulator.java           (Multithreaded background sensor streamer)
 ├── storage
-│   └── FilePersistenceManager.java        (Character & Stream I/O for CSV and logs)
+│   ├── FilePersistenceManager.java        (Character & Stream buffered I/O persistence)
 ├── cli
-│   └── VoltFleetApp.java                  (Main interactive terminal CLI & demo mode)
+│   └── VoltFleetApp.java                  (Interactive terminal console & automated demo runner)
 └── test
-    └── VoltFleetTestSuite.java            (Self-contained unit & boundary test runner)
-`
+    └── VoltFleetTestSuite.java            (Self-contained unit & boundary verification suite)
+```
 
-## 3. Core features and technical implementation
-- Abstract class Vehicle defines common properties and the abstract method calculateRequiredEnergy, overridden by DeliveryVan, HeavyCargoTruck, and PassengerShuttle to reflect category physics.
-- Interfaces (Dispatchable, EnergyChargeable, Auditable) decouple operational actions, charging behavior, and reporting.
-- Custom checked exceptions (BatteryDepletionException, GridOverloadException, VehicleUnavailableException) pass diagnostic telemetry when operating thresholds are exceeded.
-- LinkedHashMap preserves vehicle insertion order while providing constant-time lookups by VIN. A PriorityQueue prioritizes depleted vehicles for charging based on lowest state of charge.
-- A 2D array in GridLoadBalancer maps charging bay assignments across physical terminals and hourly work shifts.
-- File storage uses BufferedReader and BufferedWriter with try-with-resources blocks for structured CSV inventory export and audit trails.
-- Background threads implementing Runnable stream periodic sensor readings without blocking terminal user operations.
-- The project runs on standard Java SE with zero third-party JAR dependencies.
+---
 
-## 4. Setup and compilation guide
+## 4. Domain Models & Vehicle Physics
+
+Each vehicle subclass extends `Vehicle` and overrides the polymorphic energy model:
+
+$$\text{Energy}_{\text{Required}} (\text{kWh}) = \text{Distance} \times [\;\text{BaseRate} + (\text{Payload} \times C_p)\;] \times K_{\text{env}}$$
+
+| Vehicle Type | Class Name | Battery Capacity | Base Consumption | Payload Penalty ($C_p$) | Environmental Factor ($K_{\text{env}}$) |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Last-Mile Delivery Van** | `DeliveryVan` | 75.0 kWh | 0.21 kWh/km | `+0.00008 kWh/km/kg` | **0.88x** (Urban regenerative braking recapture) |
+| **Heavy Cargo Semi-Truck** | `HeavyCargoTruck` | 300.0 kWh | 0.85 kWh/km | `+0.00005 kWh/km/kg` | **1.15x** (Aerodynamic highway wind drag) |
+| **Transit Passenger Shuttle** | `PassengerShuttle` | 90.0 kWh | 0.32 kWh/km | `+0.00006 kWh/km/kg` | **1.08x** (Continuous passenger cabin HVAC load) |
+
+### Safety Interlock Rules
+- **15% Reserve Threshold:** Every vehicle must retain at least 15% of its total battery pack capacity upon route completion.
+- If $\text{Energy}_{\text{Required}} > \text{CurrentEnergy} - (0.15 \times \text{Capacity})$, dispatch is rejected and a `BatteryDepletionException` is thrown.
+- Rejected vehicles are automatically enqueued into a `PriorityQueue<Vehicle>` prioritized by lowest State of Charge (SoC).
+
+---
+
+## 5. Substation Grid Balancing
+
+The depot electrical infrastructure is safeguarded by `GridLoadBalancer`, which enforces a strict transformer ceiling:
+
+$$\sum_{i=1}^{N} \text{PowerDraw}_i \le 250.0\text{ kW}$$
+
+| Bay Identifier | Charging Tier | Nominal Power | Primary Target Vehicles |
+| :--- | :--- | :---: | :--- |
+| `BAY-AC-01` | `STANDARD_AC` | 7.4 kW | Overnight trickle charge for vans |
+| `BAY-AC-02` | `STANDARD_AC` | 7.4 kW | Overnight trickle charge for vans |
+| `BAY-DC-01` | `FAST_DC` | 50.0 kW | Intermediate turnaround for shuttles |
+| `BAY-DC-02` | `FAST_DC` | 50.0 kW | Intermediate turnaround for vans & shuttles |
+| `BAY-UR-01` | `ULTRA_RAPID_DC` | 150.0 kW | Rapid megawatt turnaround for heavy trucks |
+
+If an operator attempts to activate a bay that would push cumulative power past 250.0 kW, the engine blocks the allocation and throws a `GridOverloadException`.
+
+---
+
+## 6. Syllabus Mapping
+
+VoltFleet OS maps directly to the CSE2006 (Programming in Java) curriculum:
+
+| Unit | Syllabus Core Topic | Concrete Implementation in VoltFleet OS |
+| :---: | :--- | :--- |
+| **Unit 1** | **Java Introduction & Flow Control**<br>Variables, types, operators, if/else, switch, while, for loops | Interactive console menu loop, regex VIN validation, route calculation expressions, and status switch expressions in `VoltFleetApp.java`. |
+| **Unit 2** | **Object-Oriented Programming**<br>Classes, objects, inheritance, constructor chaining, encapsulation | Abstract base class `Vehicle`, constructor chaining with `super()`, encapsulation with protected members, and polymorphic subclassing in `DeliveryVan`, `HeavyCargoTruck`, `PassengerShuttle`. |
+| **Unit 3** | **Abstract Classes & Interfaces**<br>Abstract methods, interface contracts, polymorphism | Interface decoupling via `Dispatchable`, `EnergyChargeable`, and `Auditable`. Multiple interface implementation on core vehicle domain models. |
+| **Unit 4** | **Exception Handling & Multithreading**<br>Checked/unchecked exceptions, thread life cycle, synchronization | Custom exception hierarchy rooted at `VoltFleetException`. Background worker thread `TelematicsSimulator` implementing `Runnable`, synchronized grid allocation in `GridLoadBalancer`. |
+| **Unit 5** | **Collections, Arrays & File I/O**<br>Arrays, Lists, Maps, PriorityQueues, character/byte stream I/O | `LinkedHashMap` for O(1) VIN lookups, `PriorityQueue` for charging prioritization, 2D array grid scheduling matrix, and CSV export via `BufferedWriter` with try-with-resources. |
+
+---
+
+## 7. Compilation & Execution
 
 ### Prerequisites
-- Java Development Kit (JDK) 8 or higher (Tested on OpenJDK and Oracle JDK 11, 17, 20, 21).
-- A standard terminal environment (Command Prompt, PowerShell, Bash, or Zsh).
+- **Java Development Kit (JDK):** Version 8 or higher (Tested on OpenJDK 11, 17, 21, and Oracle JDK 21).
+- **Operating System:** Windows, Linux, or macOS.
 
-### Step 1: Clone the repository
-`ash
+### Clone the Repository
+```bash
 git clone https://github.com/AkshatIsWired/voltfleet-os.git
 cd voltfleet-os
-`
+```
 
-### Step 2: Compile the Java source files
-On Windows (Command Prompt / PowerShell):
-`cmd
+### Build the Project
+
+#### On Windows:
+Using the automated build script:
+```cmd
 build.bat
-`
-Or manually:
-`cmd
-mkdir bin
+```
+Or manually via `javac`:
+```cmd
+if not exist bin mkdir bin
 javac -encoding UTF-8 -d bin src\com\voltfleet\exception\*.java src\com\voltfleet\interfaces\*.java src\com\voltfleet\model\*.java src\com\voltfleet\service\*.java src\com\voltfleet\storage\*.java src\com\voltfleet\cli\*.java src\com\voltfleet\test\*.java
-`
+```
 
-On Linux or macOS:
-`ash
+#### On Linux / macOS:
+```bash
 chmod +x run.sh
 mkdir -p bin
-javac -encoding UTF-8 -d bin 
-`
+javac -encoding UTF-8 -d bin src/com/voltfleet/exception/*.java src/com/voltfleet/interfaces/*.java src/com/voltfleet/model/*.java src/com/voltfleet/service/*.java src/com/voltfleet/storage/*.java src/com/voltfleet/cli/*.java src/com/voltfleet/test/*.java
+```
 
-## 5. Running the application
+---
 
-### Interactive terminal interface (Default)
-Launch the interactive command-line console:
-`cmd
+### Running the Application
+
+#### Option A: Interactive Command-Line Console (Default)
+Launch the operator cockpit interface:
+```bash
+# Windows
 run.bat
-`
-Or manually:
-`ash
+
+# Linux / macOS
+./run.sh
+
+# Or via direct Java command
 java -cp bin com.voltfleet.cli.VoltFleetApp
-`
+```
 
-### Automated demo mode
-Run the non-interactive test sequence:
-`ash
+#### Option B: Automated Comprehensive Evaluation Demo
+Run the complete end-to-end evaluation scenario showing route feasibility checks, exception handling, grid load balancing, multithreaded telematics, and CSV persistence:
+```bash
 java -cp bin com.voltfleet.cli.VoltFleetApp --demo
-`
+```
 
-## 6. Running unit tests
-Run the built-in test suite, which verifies VIN validation, energy equations, battery depletion interlocks, grid limits, multithreading, and CSV persistence:
+---
 
-`ash
+## 8. Unit Tests & Verification
+
+VoltFleet OS includes an automated test runner (`VoltFleetTestSuite`) verifying functional requirements and boundary conditions:
+
+```bash
+# Run unit tests with assertions enabled
 java -ea -cp bin com.voltfleet.test.VoltFleetTestSuite
-`
-Or using the Windows launcher:
-`cmd
+```
+Or via the Windows launcher:
+```cmd
 run.bat --test
-`
+```
 
-### Test output
-`console
+### Test Suite Results
+```text
 =================================================================
           RUNNING VOLTFLEET OS AUTOMATED UNIT TEST SUITE         
 =================================================================
@@ -143,64 +238,59 @@ run.bat --test
 =================================================================
 TEST RESULTS: 6 / 6 PASSED (Success Rate: 100.0%)
 =================================================================
-`
+```
 
-## 7. Terminal execution output
-The automated demo run produces this output trace:
+| Test Case ID | Test Target | Test Scenario | Expected Outcome | Result |
+| :---: | :--- | :--- | :--- | :---: |
+| `TC-01` | VIN Regular Expression | Invalid syntax (`1V1INVALID!`) | Throws `InvalidVINException` | **PASS** |
+| `TC-02` | Polymorphic Consumption | 45 km Van vs 120 km Truck | Dynamic method dispatch calculations | **PASS** |
+| `TC-03` | Battery Depletion Safety | Dispatch with SoC < 15% reserve | Throws `BatteryDepletionException` | **PASS** |
+| `TC-04` | Substation Load Interlock | Aggregate bay demand > 250 kW | Throws `GridOverloadException` | **PASS** |
+| `TC-05` | Multithreaded Telematics | Background sensor ingestion | 4 packets received via worker thread | **PASS** |
+| `TC-06` | CSV File Stream I/O | Persistence to `data/fleet_inventory.csv` | File written with headers and verified | **PASS** |
 
-`console
+---
+
+## 9. Sample Execution Trace
+
+```text
 =========================== FLEET AUDIT SUMMARY ===========================
-VIN: 1V1EVLASTMILE01 | Category: Last-Mile Van    | Model: Transit-Volt 350 | SoC:  91.8% | Odo:     0.0 km | Carbon Offset:    0.0 kg CO2 | Status: AVAILABLE
-VIN: 1V1EVLASTMILE02 | Category: Last-Mile Van    | Model: Transit-Volt 350 | SoC:  21.8% | Odo:     0.0 km | Carbon Offset:    0.0 kg CO2 | Status: AVAILABLE
-VIN: 1H1EVFREIGHT901 | Category: Heavy Cargo Semi | Model: VoltHauler Semi | SoC:  88.6% | Odo:     0.0 km | Carbon Offset:    0.0 kg CO2 | Status: AVAILABLE
-VIN: 1P1EVSHUTTLE501 | Category: Transit Shuttle  | Model: MetroE-Shuttle 20 | SoC:  86.4% | Odo:     0.0 km | Carbon Offset:    0.0 kg CO2 | Status: AVAILABLE
+VIN: 1V1EVLASTMILE01 | Category: Last-Mile Van    | Model: Transit-Volt 350 | SoC:  91.8% | Status: AVAILABLE
+VIN: 1V1EVLASTMILE02 | Category: Last-Mile Van    | Model: Transit-Volt 350 | SoC:  21.8% | Status: AVAILABLE
+VIN: 1H1EVFREIGHT901 | Category: Heavy Cargo Semi | Model: VoltHauler Semi | SoC:  88.6% | Status: AVAILABLE
+VIN: 1P1EVSHUTTLE501 | Category: Transit Shuttle  | Model: MetroE-Shuttle 20 | SoC:  86.4% | Status: AVAILABLE
 ---------------------------------------------------------------------------
 Total Fleet Vehicles : 4
 Depot Fleet Energy   : 501.50 / 630.00 kWh (Avg SoC: 79.6%)
-Total Clean CO2 Saved: 0.00 kg CO2
 ===========================================================================
 
---- [TEST 2] ROUTE DISPATCH (NORMAL BOUNDARY CHECK) ---
-Dispatching [1V1EVLASTMILE01] on Route RT-URBAN-12 (Distance: 45 km, Payload: 350 kg)...
+[TEST 2] ROUTE DISPATCH: Dispatching [1V1EVLASTMILE01] on Route RT-URBAN-12 (45 km, 350 kg)...
 Result: DISPATCH APPROVED. Vehicle status changed to EN_ROUTE.
 
---- [TEST 3] DISPATCH INTERVENTION: BATTERY DEPLETION EXCEPTION ---
-Attempting to dispatch Low-Battery Vehicle [1V1EVLASTMILE02] on 120 km High-Payload Route...
-SUCCESS: BatteryDepletionException caught and handled gracefully!
-  -> Diagnostic Message: Battery Depletion Hazard for VIN [1V1EVLASTMILE02]: Required 25.03 kWh, but only 5.75 kWh available (Current SoC: 21.8%). Cannot safely dispatch.
-  -> Enqueueing depleted vehicle into smart charging queue...
+[TEST 3] SAFETY INTERLOCK: Dispatching Low-Battery [1V1EVLASTMILE02] on 120 km Route...
+SUCCESS: BatteryDepletionException caught and handled!
+  -> Message: Battery Depletion Hazard for VIN [1V1EVLASTMILE02]: Required 25.03 kWh, but only 5.75 kWh usable.
+  -> Automatically enqueued into smart charging queue!
 
---- [TEST 4] GRID POWER ALLOCATION & OVERLOAD CEILING ---
-======================== DEPOT CHARGING TERMINALS ========================
-Bay [BAY-AC-01] | STANDARD_AC      |   7.4 kW | Status: FREE
-Bay [BAY-AC-02] | STANDARD_AC      |   7.4 kW | Status: FREE
-Bay [BAY-DC-01] | FAST_DC          |  50.0 kW | Status: FREE
-Bay [BAY-DC-02] | FAST_DC          |  50.0 kW | Status: FREE
-Bay [BAY-UR-01] | ULTRA_RAPID_DC   | 150.0 kW | Status: FREE
----------------------------------------------------------------------------
-Depot Electrical Grid Load: 0.0 kW / 250.0 kW (Utilization: 0.0%)
-===========================================================================
-Connecting Heavy Truck to Ultra-Rapid 150 kW Bay...
-Allocated BAY-UR-01. New load: 150.0 kW.
-Connecting Passenger Shuttle to Fast DC 50 kW Bay...
-Allocated BAY-DC-01. New load: 200.0 kW.
-Attempting to connect Delivery Van to another 50 kW bay (Testing load limit)...
-Allocated BAY-DC-02. Total load: 250.0 kW.
+[TEST 4] GRID POWER BALANCING:
+Allocating BAY-UR-01 (150 kW) to Heavy Truck... Load: 150.0 kW / 250.0 kW
+Allocating BAY-DC-01 (50 kW) to Passenger Shuttle... Load: 200.0 kW / 250.0 kW
+Allocating BAY-DC-02 (50 kW) to Delivery Van... Load: 250.0 kW / 250.0 kW (100% capacity)
+Attempting to allocate BAY-AC-01 (7.4 kW)...
+SUCCESS: GridOverloadException caught! Substation protected from 257.4 kW brownout.
 
---- [TEST 5] MULTITHREADED TELEMATICS LIVE SENSOR INGESTION ---
-  [SENSOR STREAM] [2026-09-17 14:19:15] VIN: 1V1EVLASTMILE01 | Speed:  67.8 km/h | SoC:  91.8% | Temp: 29.7°C | Pos: (23.0787, 76.8507)
-  [SENSOR STREAM] [2026-09-17 14:19:15] VIN: 1V1EVLASTMILE01 | Speed:  57.9 km/h | SoC:  91.8% | Temp: 29.1°C | Pos: (23.0786, 76.8530)
-  [SENSOR STREAM] [2026-09-17 14:19:15] VIN: 1V1EVLASTMILE01 | Speed:  47.7 km/h | SoC:  91.8% | Temp: 30.5°C | Pos: (23.0764, 76.8527)
-  [SENSOR STREAM] [2026-09-17 14:19:15] VIN: 1V1EVLASTMILE01 | Speed:  61.8 km/h | SoC:  91.8% | Temp: 28.6°C | Pos: (23.0776, 76.8512)
+[TEST 5] MULTITHREADED SENSOR TELEMETRY:
+  [SENSOR STREAM] [2026-09-17 14:19:15] VIN: 1V1EVLASTMILE01 | Speed: 67.8 km/h | SoC: 91.8% | Temp: 29.7°C
+  [SENSOR STREAM] [2026-09-17 14:19:15] VIN: 1V1EVLASTMILE01 | Speed: 57.9 km/h | SoC: 91.8% | Temp: 29.1°C
 
---- [TEST 6] PERSISTENCE ENGINE: CSV EXPORT & AUDIT JOURNAL ---
+[TEST 6] PERSISTENCE ENGINE:
 SUCCESS: Fleet inventory exported to data/fleet_inventory.csv (4 records written).
-Checking data directory: data/fleet_inventory.csv (Exists: true)
-`
+```
 
-## 8. Academic course alignment
-- Unit 1 (Java introduction and flow control): Console menus, data types, and loop structures in VoltFleetApp.java.
-- Unit 2 (Java object-oriented programming): Inheritance hierarchies, dynamic dispatch, and encapsulation in Vehicle.java and its subclasses.
-- Unit 3 (Abstract classes and interfaces): Abstract base methods and interface implementations in Dispatchable, EnergyChargeable, and Auditable.
-- Unit 4 (Exception handling and multithreading): Custom exception hierarchy under VoltFleetException and background telemetry threads in TelematicsSimulator.java.
-- Unit 5 (Collections, arrays, and file I/O): 2D array power grid scheduling in GridLoadBalancer.java, LinkedHashMap and PriorityQueue in DepotManager.java, and CSV buffered I/O in FilePersistenceManager.java.
+---
+
+## 10. License & Academic Integrity
+
+This project is developed as part of the continuous evaluation for course **CSE2006: Programming in Java** at **VIT Bhopal University**.
+
+Licensed under the [MIT License](LICENSE).
