@@ -55,12 +55,10 @@ VoltFleet OS models and solves each of these constraints in standard Java SE wit
 | **Academic Session** | Fall Semester 2026 to 2027 |
 | **Official Repository** | [github.com/AkshatIsWired/voltfleet-os](https://github.com/AkshatIsWired/voltfleet-os) |
 
-### Complete Documentation Suite
-The full academic project report is available in multiple formats inside the `docs/` folder:
-- 📄 **[Evaluated Course Project Report (PDF - 15 Pages)](docs/VoltFleet_OS_Project_Report.pdf)**: Complete academic report with UML diagrams, mathematical formulas, code listings, execution logs, and boundary analysis.
-- 📝 **[Editable Project Report (Word DOCX)](docs/VoltFleet_OS_Project_Report.docx)**: Official formatted submission document.
-- 🌐 **[Standalone HTML Report](docs/VoltFleet_OS_Project_Report.html)**: Portable browser-based view with embedded SVG vector architecture diagrams.
-- ⚙️ **[Automated Report Generator](docs/generate_report.py)**: Python script to compile HTML, PDF, and DOCX reports programmatically.
+### Project Documentation
+The complete formal academic project report is available inside the `docs/` folder:
+- [Evaluated Course Project Report (PDF)](docs/VoltFleet_OS_Project_Report.pdf): Complete 15-page academic project report containing system architecture, domain models, mathematical formulations, concrete Java source listings, terminal logs, and boundary value testing tables.
+- [Project Report Source (Word Document)](docs/VoltFleet_OS_Project_Report.docx): Formatted Word submission document.
 
 ---
 
